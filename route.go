@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -8,17 +9,21 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const redirectRTMP = "rtmp://0.0.0.0:1935/live360p/%d"
+
 func AuthHandler(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	key := req.FormValue("name")
+	streamKeyIdentifier := "name"
 
-	keyInt, err := strconv.Atoi(key)
-	if err != nil {
-		log.Println("["+strconv.Itoa(http.StatusForbidden)+"]", key, ":", err)
+	key := req.FormValue(streamKeyIdentifier)
+	keyPort := make(map[string]int)
+	keyPort["abcd"] = 8888
+	keyPort["efgh"] = 8889
+
+	if port, ok := keyPort[key]; ok {
+		/*Set Port is Used*/
+		http.Redirect(w, req, fmt.Sprintf(redirectRTMP, port), 301)
+	} else {
+		log.Println("["+strconv.Itoa(http.StatusForbidden)+"]", key)
 		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	if keyInt >= 8888 && keyInt <= 8889 {
-		w.WriteHeader(http.StatusOK)
 	}
 }
